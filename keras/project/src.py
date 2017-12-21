@@ -10,7 +10,6 @@ import numpy as np
 
 def create_bags(input_data, labels, max_batch_size):
 
-    # output probabilities
     # the_y_probs = keras.utils.to_categorical(y_train, num_classes)
     the_y_probs = None
 
@@ -28,25 +27,22 @@ def create_bags(input_data, labels, max_batch_size):
 
         # Find the probability of each class
         the_labels = labels[lower_bound : upper_bound]
+
         the_probs = sum(the_labels) / max_batch_size # an array [y0, y1, ...]
-        #print(the_probs)
         the_probs = the_probs.reshape(1, -1)
-        #print("reshape:", the_probs)
         the_probs = np.repeat(the_probs, upper_bound - lower_bound, axis=0)
-        #print("repeat:", the_probs)
-        # the_y_probs.extend(the_probs)
+
         if the_y_probs is None:
             the_y_probs = the_probs
         else:
             the_y_probs = np.append(the_y_probs, the_probs, axis=0)
-            # raise Exception
 
     return the_y_probs
 
 
-batch_size = 16
+batch_size = 10
 num_classes = 10
-epochs = 3
+epochs = 12
 
 # input image dimensions
 img_rows, img_cols = 28, 28
@@ -77,7 +73,7 @@ y_train = keras.utils.to_categorical(y_train, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
 y_train = create_bags(x_train, y_train, batch_size)
-y_test = create_bags(x_test, y_test, batch_size)
+# y_test = create_bags(x_test, y_test, batch_size)
 
 model = Sequential()
 model.add(Conv2D(32, kernel_size=(3, 3),
@@ -92,7 +88,11 @@ model.add(Dropout(0.5))
 model.add(Dense(num_classes, activation='softmax'))
 # model.add(BatchNormalization()) # not so good for this dataset; drops accuracy from 0.98 to 0.92
 
-model.compile(loss=keras.losses.kullback_leibler_divergence, # using KL-divergence
+# model.compile(loss=keras.losses.kullback_leibler_divergence, # using KL-divergence
+#               optimizer=keras.optimizers.Adadelta(),
+#               metrics=['accuracy'])
+
+model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adadelta(),
               metrics=['accuracy'])
 
