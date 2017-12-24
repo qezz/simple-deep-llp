@@ -1,12 +1,14 @@
 import keras
 from keras.datasets import mnist # mnist
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten
+from keras.layers import Dense, Dropout, Flatten, Activation
 from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
 from keras import backend as K
 
 import random
 import numpy as np
+
+from averager_layer import BatchAverager, MyLayer
 
 def create_bags(input_data, labels, max_batch_size):
 
@@ -40,9 +42,9 @@ def create_bags(input_data, labels, max_batch_size):
     return the_y_probs
 
 
-batch_size = 10
+batch_size = 1
 num_classes = 10
-epochs = 12
+epochs = 3
 
 # input image dimensions
 img_rows, img_cols = 28, 28
@@ -72,8 +74,9 @@ print(x_test.shape[0], 'test samples')
 y_train = keras.utils.to_categorical(y_train, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
-y_train = create_bags(x_train, y_train, batch_size)
-# y_test = create_bags(x_test, y_test, batch_size)
+if False:
+    y_train = create_bags(x_train, y_train, batch_size)
+    # y_test = create_bags(x_test, y_test, batch_size)
 
 model = Sequential()
 model.add(Conv2D(32, kernel_size=(3, 3),
@@ -85,16 +88,27 @@ model.add(Dropout(0.25))
 model.add(Flatten())
 model.add(Dense(128, activation='relu'))
 model.add(Dropout(0.5))
+# model.add(Dense(num_classes, activation='softmax'))
 model.add(Dense(num_classes, activation='softmax'))
+model.add(BatchAverager(num_classes))
+model.add(Activation('softmax'))
+# model.add(Dense(num_classes, activation='softmax'))
+# model.add(Lambda(average_fn))
+
+# intermediate_layer_model = Model(inputs=[model.layers[7].input],
+#                                  outputs=[model.layers[7].output])
+# intermediate_output = intermediate_layer_model.predict(x_test)
+
+
 # model.add(BatchNormalization()) # not so good for this dataset; drops accuracy from 0.98 to 0.92
 
-# model.compile(loss=keras.losses.kullback_leibler_divergence, # using KL-divergence
-#               optimizer=keras.optimizers.Adadelta(),
-#               metrics=['accuracy'])
-
-model.compile(loss=keras.losses.categorical_crossentropy,
+model.compile(loss=keras.losses.kullback_leibler_divergence, # using KL-divergence
               optimizer=keras.optimizers.Adadelta(),
               metrics=['accuracy'])
+
+# model.compile(loss=keras.losses.categorical_crossentropy,
+#               optimizer=keras.optimizers.Adadelta(),
+#               metrics=['accuracy'])
 
 model.fit(x_train, y_train,
           batch_size=batch_size,
@@ -103,6 +117,7 @@ model.fit(x_train, y_train,
           validation_data=(x_test, y_test))
 
 # for epoch in epochs:
+#     print("train")
 
 
 
