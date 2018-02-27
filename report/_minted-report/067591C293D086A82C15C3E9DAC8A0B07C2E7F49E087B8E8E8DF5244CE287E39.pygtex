@@ -1,0 +1,4 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{y\PYGZus{}train} \PYG{o}{=} \PYG{n}{keras}\PYG{o}{.}\PYG{n}{utils}\PYG{o}{.}\PYG{n}{to\PYGZus{}categorical}\PYG{p}{(}\PYG{n}{y\PYGZus{}train}\PYG{p}{,} \PYG{n}{num\PYGZus{}classes}\PYG{p}{)}
+\PYG{n}{y\PYGZus{}train} \PYG{o}{=} \PYG{n}{create\PYGZus{}bags}\PYG{p}{(}\PYG{n}{x\PYGZus{}train}\PYG{p}{,} \PYG{n}{y\PYGZus{}train}\PYG{p}{,} \PYG{n}{batch\PYGZus{}size}\PYG{p}{)}
+\end{Verbatim}

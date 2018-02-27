@@ -1,0 +1,466 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX} % To support LaTeX quoting style
+\setromanfont{Times New Roman}
+
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+
+\usepackage{longtable}
+\usepackage[table,dvipsnames]{xcolor}
+
+\usepackage{minted}
+% \RequirePackage[outputdir=.,cache=true]{minted}
+
+% \setmonofont{Monaco}
+
+% \usepackage{listings}
+% \usepackage{color}
+% \usepackage{courier}
+
+
+\usepackage{hyperref}
+
+\usepackage{layout}
+\usepackage{geometry}
+\usepackage{float}
+
+\usepackage[fleqn]{amsmath}
+
+\parindent=0pt
+\oddsidemargin=0pt
+\hoffset=0pt
+\textwidth=6.6in
+\textheight=9in
+\footskip=50pt
+
+\setmonofont{Monaco}
+
+
+\newcommand{\tripleunderscore}{\textunderscore\textunderscore\textunderscore}
+\newcommand{\twelveuderscore}{\tripleunderscore \tripleunderscore
+  \tripleunderscore \tripleunderscore}
+
+\newcommand*\rfrac[2]{{}^{#1}\!/_{#2}}
+
+\definecolor{graybg}{rgb}{0.95,0.95,0.95}
+
+\newminted[texterror]{text}{frame=leftline,rulecolor=\color{red},framerule=1pt}
+\newminted[textsuccess]{text}{frame=leftline,rulecolor=\color{ForestGreen},framerule=1pt}
+\newminted[textout]{text}{frame=leftline,rulecolor=\color{gray!80},framerule=1pt,bgcolor=graybg}
+\newminted[rframe]{python}{fontsize=\scriptsize,frame=single,rulecolor=\color{Gray},framerule=1pt}
+\newminted[codeframe]{python}{fontsize=\scriptsize,frame=single,rulecolor=\color{Gray},framerule=1pt}
+
+\begin{document}
+
+\title{Обучение для классификации рукописных цифр, используя глубокое
+  обучение на основании пропорциональных маркировок}
+
+\author{Сергей Мишин}
+
+\begin{titlepage}
+
+  \thispagestyle{empty}
+
+  \newgeometry{top=0.5in,bottom=0in,right=1in,left=1in}
+
+  \centering
+  \par
+  {\scshape Санкт-Петербургский политехнический университет Петра Великого\par
+    Институт компьютерных наук и технологий\par
+    Высшая Школа Программной Инженерии\par}
+  \vspace{6.3cm}
+
+  {\large\bfseries% \uppercase
+    {Глубокое обучение на основе пропорциональных маркировок}\par}
+  \vspace{0.7cm}
+  {\normalsize\bfseries Отчёт по научно-исследовательской работе \par}
+  \vspace{3.0cm}
+
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill} } l r }
+    Выполнил            &                     \\
+    студент гр. 43504/2 &          С.А. Мишин \\
+                        &                     \\
+    Руководитель        &    Черноруцкий И.Г. \\
+                        &                     \\
+
+  \end{tabular*}
+
+  \vspace{4cm}
+
+  % date
+  {\hspace{10cm}\normalsize <<\tripleunderscore>>
+    \twelveuderscore \space \the\year \space г. \par}
+
+  {\vspace{6.5cm}\normalsize
+    Санкт-Петербург \par
+    \the\year \par
+  }
+\end{titlepage}
+
+\restoregeometry
+
+\setlength{\jot}{20pt}
+\setlength{\parskip}{1em}
+\setlength{\mathindent}{1cm}
+
+\newgeometry{top=1in,bottom=1.2in,right=0.7in,left=1in}
+
+\sloppypar
+
+
+\tableofcontents{}
+
+
+% \title{Co-training for Demographic Classification Using Deep Learning
+%   from Label Proportions}
+
+% \date{September 16, 2017}
+% \author{Sergey Mishin}
+
+
+\newpage{}
+\section{Введение}
+
+Работа сделана на основе статьи Ehsan Mohammady Ardehaly и Aron
+Culotta, представителей Иллинойсского технологического института.
+
+Оригинал статьи:
+
+\textbf{Co-training for Demographic Classification Using Deep Learning from
+Label Proportions} [1]
+
+Опубликована на сайте библиотеки Корнеллского университета, https://arxiv.org/pdf/1709.04108.pdf
+
+В последние несколько лет в сфере принятия решений очень активно
+развиваются нейронные сети и технологии связанные с ними. Одной из
+новых идей стало ``Глубокое обучение на основе пропорциональных
+маркировок'', когда конкретные экземпляры (samples) объединяются в
+группы, которым присваиваются пропорциональные маркеры (labels) [2]. В
+дальнейшем именно эти группы используются в качестве основы для
+обучения сети.
+
+Глубокое обучение на основе пропорциональных маркировок (Deep LLP)
+хорошо показало себя в классификации неточных данных[1][3][4], к
+примеру, на демографической классификации по изображению.
+
+Из-за новизны данного направления, пока не существует эталонных
+реализаций нейронных сетей с Deep LLP, поэтому появилась задача
+создать понятную реализацию.
+
+\newpage
+\subsection{Цель работы}
+
+Целью курсовой работы является реализация алгоритма \textbf{Обучения
+  на основании пропорциональных маркировок}, который является
+гибридным алгоритмом обучения за счёт того, что известна только
+вероятность нахождения определённого класса среди группы объектов.
+
+\section{Основная часть}
+
+\subsection{Терминология}
+
+\begin{itemize}
+\item \textbf{Deep LLP} --- Deep Learning from Label Proportions, обучение на
+  основании пропорциональных маркировок
+\item \textbf{CNN} --- Convolution Neural Network, свёрточная нейронная сеть
+\item \textbf{MNIST} --- Modified National Institute of Standards and
+  Technology database, база данных образцов рукописного написания цифр
+\item \textbf{batch} --- группа, содержащая в себе несколько
+  экземпляров из набора исходных данных. 
+\item \textbf{bag} --- сумка, содержит в себе набор исходных данных
+  для обучения и маркировку пропорций. Обычно, размер сумки совпадает
+  с размером группы.
+\end{itemize}
+
+\subsection{Реализация}
+
+Реализация алгоритма обучения на основе пропорциональных маркировок
+произведена с помощью модификации стандартной свёрточной нейронной
+сети для классификации рукописных цифр (MNIST).
+
+Для реализации был выбран фреймворк Keras\footnote{https://keras.io},
+поддерживающий два низкоуровневых фреймворка
+TensorFlow\footnote{https://tensorflow.org/} и
+Theano\footnote{http://deeplearning.net/software/theano/}
+
+\newpage
+\subsubsection{Настройка модели}
+
+Для корректной работы алгоритма обучения на основе пропорциональных
+маркировок необходимо реализовать функцию определения
+пропорционального маркера -- \textit{create\_bags()}:
+
+\begin{codeframe}
+def create_bags(input_data, labels, max_batch_size):
+
+    # output probabilities
+    the_y_probs = None
+
+    # get next `max_batch_size' pieces of the `input_data'
+    input_data_length = len(input_data)
+    for lower_bound in range(0, input_data_length, max_batch_size):
+
+        # Check the top limit
+        if lower_bound + max_batch_size >= input_data_length:
+            upper_bound = input_data_length
+        else:
+            upper_bound = lower_bound + max_batch_size
+
+        the_batch = input_data[lower_bound : upper_bound]
+
+        # Find the probability of each class
+        the_labels = labels[lower_bound : upper_bound]
+
+        the_probs = sum(the_labels) / max_batch_size # an array [y0, y1, ...]
+        the_probs = the_probs.reshape(1, -1)
+        the_probs = np.repeat(the_probs, upper_bound - lower_bound, axis=0)
+
+        if the_y_probs is None:
+            the_y_probs = the_probs
+        else:
+            the_y_probs = np.append(the_y_probs, the_probs, axis=0)
+
+    return the_y_probs
+\end{codeframe}
+
+Принцип работы функции следующий:
+\begin{enumerate}
+\item Из входных данных выбирается группа экземпляров, например
+  размером 16 штук с сумке.
+\item Для этой группы определяется пропорциональность (статистическая
+  вероятность) вхождения каждого класса элемента. В случае с MNIST
+  таких классов 10 (цифры от 0 до 9).
+\item Далее полученные маркировки распространяются на все элементы,
+  вошедшие в группу.
+\item Все маркировки добавляются в один список (аналогично вектору
+  \( y \), предназначенному для обучения), который в последствии
+  заменяет набор \( y \) для обучения, \textbf{y\_train}.
+\end{enumerate}
+
+Таким образом, будем использовать полученные сумки в качестве набора для обучения \textbf{y}:
+\begin{codeframe}
+y_train = keras.utils.to_categorical(y_train, num_classes)
+y_train = create_bags(x_train, y_train, batch_size)
+\end{codeframe}
+
+Также, для функции потерь (loss function) будем использовать
+KL-Divergence\footnote{https://en.wikipedia.org/wiki/Kullback–Leibler\_divergence}
+(Kullback-Leibler divergence).
+
+В общем случае, если \( \mu \) – любая мера на \( X \), для которой
+существуют абсолютно непрерывные относительно \( \mu \) функции
+\( p = \frac{\rm{d}P}{\rm{d}\mu} \)и
+\( q = \frac{\rm{d}Q}{\rm{d}\mu} \), тогда расхождение
+Кульбака–Лейблера распределения \( Q \) относительно \( P \)
+определяется как:
+\begin{flalign}
+  & D_{KL}(P || Q) = \int_X p \log{\frac{p}{q}d\mu}
+\end{flalign}
+
+Укажем её в качестве функции потерь:
+\begin{codeframe}
+model.compile(loss=keras.losses.kullback_leibler_divergence, # using KL-divergence
+              optimizer=keras.optimizers.Adadelta(),
+              metrics=['accuracy'])
+\end{codeframe}
+
+В качестве размера группы будем использовать 16:
+\begin{codeframe}
+batch_size = 16
+\end{codeframe}
+
+\subsection{Тестирование}
+
+Тестирование проводилось в сравнении с \textbf{mnist\_cnn.py}, были получены следующие результаты:
+
+\begin{enumerate}
+\item MNIST CNN [5]: Точность на тестовых данных 98.2\%
+\item Собственный Deep LLP: Точность на тестовых данных 95.44\%
+\end{enumerate}
+
+К сожалению, побить результат отлаженного алгоритма MNIST CNN, возможные причины:
+\begin{itemize}
+\item В ``чистом'' варианте MNIST изначально используются ``строгие''
+  ручные маркировки. В варианте LLP моделируется ситуация отсутствия
+  таких точных значений, а система больше рассчитывается на
+  использование с неизвестными данными (``in the wild'')
+\item В MNIST достаточно большое количество классов -- 10, это резко
+  уменьшает количество сумок и точность их маркировки, т.к. для одной
+  сумки используется несколько экземпляров в группе (batch). Чем
+  больше группа, тем точнее маркировка, но тем меньше общее количество
+  групп, что сильно влияет на качество обучения.
+\end{itemize}
+
+К примеру, если уменьшить размер группы с 16 до 10, то точность
+правильного определения цифры повышается до 97.47\%.
+
+\section{Выводы}
+
+Глубокое обучение на основе пропорциональных маркировок показывает
+неплохой потенциал в машинном обучении. Исследования показывают, что
+они отлично справляются с распознаванием нечётких характеристик
+(демографических, или, например, обледенелой поверхности воды).
+Но, к сожалению, сейчас не существует проектов с открытым исходным
+кодом для изучения.
+
+В данном проекте на текущий момент реализована удобная система
+нахождения маркера для группы, и использования его при обучении.
+
+\section{Литература}
+
+[1] E. M. Ardehaly и A. Culotta, "Co-training for Demographic
+Classification Using Deep Learning from Label Proportions", Illinois
+Institute of Technology
+
+[2] N. Quadrianto, A. J. Smola, T. S. Caetano и Q. V. Le, "Estimating
+Labels from Label Proportions", Journal of Machine Learning Research
+
+[3] F. Li и G. Taylor, “Alter-cnn: An approach to learning from label
+proportions with application to ice-water classification,” in Neural
+Information Processing Systems Workshops (NIPSW) on Learning and
+privacy with incomplete data and weak supervision, 2015.
+
+[4] X. Yu, Scalable Machine Learning for Visual Data, Columbia
+University
+
+[5] Y. Lecun, L. Bottou, Y. Bengio и P Haffner, "Gradient-Based
+Learning Applied to Document Recognition", Proceedings Of The IEEE,
+1998
+\section{Приложения}
+
+\subsection{Системные требования}
+
+Для работы и запуска нейронной сети требуется:
+\begin{itemize}
+\item Unix-совместимая операционная система
+\item Python 3.6, библиотеки:
+  \begin{itemize}
+  \item NumPy 1.12.1
+  \item TensorFlow 1.4.0
+  \item Keras 2.1.2
+  \end{itemize}
+\end{itemize}
+
+\subsection{Исходный код}
+
+Исходный код модели может быть найден по адресу https://github.com/qezz/simple-deep-llp/blob/master/keras/project/src.py
+
+\begin{codeframe}
+import keras
+from keras.datasets import mnist
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Flatten
+from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
+from keras import backend as K
+
+import random
+import numpy as np
+
+def create_bags(input_data, labels, max_batch_size):
+
+    # the_y_probs = keras.utils.to_categorical(y_train, num_classes)
+    the_y_probs = None
+
+    # get next `max_batch_size' pieces of the `input_data'
+    input_data_length = len(input_data)
+    for lower_bound in range(0, input_data_length, max_batch_size):
+
+        # Check the top limit
+        if lower_bound + max_batch_size >= input_data_length:
+            upper_bound = input_data_length
+        else:
+            upper_bound = lower_bound + max_batch_size
+
+        the_batch = input_data[lower_bound : upper_bound]
+
+        # Find the probability of each class
+        the_labels = labels[lower_bound : upper_bound]
+
+        the_probs = sum(the_labels) / max_batch_size # an array [y0, y1, ...]
+        the_probs = the_probs.reshape(1, -1)
+        the_probs = np.repeat(the_probs, upper_bound - lower_bound, axis=0)
+
+        if the_y_probs is None:
+            the_y_probs = the_probs
+        else:
+            the_y_probs = np.append(the_y_probs, the_probs, axis=0)
+
+    return the_y_probs
+
+
+batch_size = 10
+num_classes = 10
+epochs = 12
+
+# input image dimensions
+img_rows, img_cols = 28, 28
+
+# the data, shuffled and split between train and test sets
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+if K.image_data_format() == 'channels_first':
+    x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
+    x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols)
+    input_shape = (1, img_rows, img_cols)
+else:
+    x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
+    x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
+    input_shape = (img_rows, img_cols, 1)
+
+
+x_train = x_train.astype('float32')
+x_test = x_test.astype('float32')
+x_train /= 255
+x_test /= 255
+print('x_train shape:', x_train.shape)
+print(x_train.shape[0], 'train samples')
+print(x_test.shape[0], 'test samples')
+
+# convert class vectors to binary class matrices
+y_train = keras.utils.to_categorical(y_train, num_classes)
+y_test = keras.utils.to_categorical(y_test, num_classes)
+
+y_train = create_bags(x_train, y_train, batch_size)
+# y_test = create_bags(x_test, y_test, batch_size)
+
+model = Sequential()
+model.add(Conv2D(32, kernel_size=(3, 3),
+                 activation='relu',
+                 input_shape=input_shape))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.25))
+model.add(Flatten())
+model.add(Dense(128, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(num_classes, activation='softmax'))
+# model.add(BatchNormalization()) # not so good for this dataset; drops accuracy from 0.98 to 0.92
+
+model.compile(loss=keras.losses.kullback_leibler_divergence, # using KL-divergence
+              optimizer=keras.optimizers.Adadelta(),
+              metrics=['accuracy'])
+
+model.fit(x_train, y_train,
+          batch_size=batch_size,
+          epochs=epochs,
+          verbose=1,
+          validation_data=(x_test, y_test))
+
+# for epoch in epochs:
+
+
+
+score = model.evaluate(x_test, y_test, verbose=0)
+print('Test loss:', score[0])
+print('Test accuracy:', score[1])
+\end{codeframe}
+
+\end{document}

@@ -42,7 +42,7 @@ def create_bags(input_data, labels, max_batch_size):
     return the_y_probs
 
 
-batch_size = 1
+batch_size = 128
 num_classes = 10
 epochs = 3
 
@@ -90,8 +90,9 @@ model.add(Dense(128, activation='relu'))
 model.add(Dropout(0.5))
 # model.add(Dense(num_classes, activation='softmax'))
 model.add(Dense(num_classes, activation='softmax'))
-model.add(BatchAverager(num_classes))
-model.add(Activation('softmax'))
+# model.add(BatchAverager(num_classes))
+# model.add(Activation('softmax'))
+
 # model.add(Dense(num_classes, activation='softmax'))
 # model.add(Lambda(average_fn))
 

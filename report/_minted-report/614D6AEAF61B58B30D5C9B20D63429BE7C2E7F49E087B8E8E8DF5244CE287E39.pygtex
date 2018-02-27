@@ -1,0 +1,109 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{import} \PYG{n+nn}{keras}
+\PYG{k+kn}{from} \PYG{n+nn}{keras.datasets} \PYG{k+kn}{import} \PYG{n}{mnist}
+\PYG{k+kn}{from} \PYG{n+nn}{keras.models} \PYG{k+kn}{import} \PYG{n}{Sequential}
+\PYG{k+kn}{from} \PYG{n+nn}{keras.layers} \PYG{k+kn}{import} \PYG{n}{Dense}\PYG{p}{,} \PYG{n}{Dropout}\PYG{p}{,} \PYG{n}{Flatten}
+\PYG{k+kn}{from} \PYG{n+nn}{keras.layers} \PYG{k+kn}{import} \PYG{n}{Conv2D}\PYG{p}{,} \PYG{n}{MaxPooling2D}\PYG{p}{,} \PYG{n}{BatchNormalization}
+\PYG{k+kn}{from} \PYG{n+nn}{keras} \PYG{k+kn}{import} \PYG{n}{backend} \PYG{k}{as} \PYG{n}{K}
+
+\PYG{k+kn}{import} \PYG{n+nn}{random}
+\PYG{k+kn}{import} \PYG{n+nn}{numpy} \PYG{k+kn}{as} \PYG{n+nn}{np}
+
+\PYG{k}{def} \PYG{n+nf}{create\PYGZus{}bags}\PYG{p}{(}\PYG{n}{input\PYGZus{}data}\PYG{p}{,} \PYG{n}{labels}\PYG{p}{,} \PYG{n}{max\PYGZus{}batch\PYGZus{}size}\PYG{p}{):}
+
+    \PYG{c+c1}{\PYGZsh{} the\PYGZus{}y\PYGZus{}probs = keras.utils.to\PYGZus{}categorical(y\PYGZus{}train, num\PYGZus{}classes)}
+    \PYG{n}{the\PYGZus{}y\PYGZus{}probs} \PYG{o}{=} \PYG{n+nb+bp}{None}
+
+    \PYG{c+c1}{\PYGZsh{} get next `max\PYGZus{}batch\PYGZus{}size\PYGZsq{} pieces of the `input\PYGZus{}data\PYGZsq{}}
+    \PYG{n}{input\PYGZus{}data\PYGZus{}length} \PYG{o}{=} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{input\PYGZus{}data}\PYG{p}{)}
+    \PYG{k}{for} \PYG{n}{lower\PYGZus{}bound} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{input\PYGZus{}data\PYGZus{}length}\PYG{p}{,} \PYG{n}{max\PYGZus{}batch\PYGZus{}size}\PYG{p}{):}
+
+        \PYG{c+c1}{\PYGZsh{} Check the top limit}
+        \PYG{k}{if} \PYG{n}{lower\PYGZus{}bound} \PYG{o}{+} \PYG{n}{max\PYGZus{}batch\PYGZus{}size} \PYG{o}{\PYGZgt{}=} \PYG{n}{input\PYGZus{}data\PYGZus{}length}\PYG{p}{:}
+            \PYG{n}{upper\PYGZus{}bound} \PYG{o}{=} \PYG{n}{input\PYGZus{}data\PYGZus{}length}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{n}{upper\PYGZus{}bound} \PYG{o}{=} \PYG{n}{lower\PYGZus{}bound} \PYG{o}{+} \PYG{n}{max\PYGZus{}batch\PYGZus{}size}
+
+        \PYG{n}{the\PYGZus{}batch} \PYG{o}{=} \PYG{n}{input\PYGZus{}data}\PYG{p}{[}\PYG{n}{lower\PYGZus{}bound} \PYG{p}{:} \PYG{n}{upper\PYGZus{}bound}\PYG{p}{]}
+
+        \PYG{c+c1}{\PYGZsh{} Find the probability of each class}
+        \PYG{n}{the\PYGZus{}labels} \PYG{o}{=} \PYG{n}{labels}\PYG{p}{[}\PYG{n}{lower\PYGZus{}bound} \PYG{p}{:} \PYG{n}{upper\PYGZus{}bound}\PYG{p}{]}
+
+        \PYG{n}{the\PYGZus{}probs} \PYG{o}{=} \PYG{n+nb}{sum}\PYG{p}{(}\PYG{n}{the\PYGZus{}labels}\PYG{p}{)} \PYG{o}{/} \PYG{n}{max\PYGZus{}batch\PYGZus{}size} \PYG{c+c1}{\PYGZsh{} an array [y0, y1, ...]}
+        \PYG{n}{the\PYGZus{}probs} \PYG{o}{=} \PYG{n}{the\PYGZus{}probs}\PYG{o}{.}\PYG{n}{reshape}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{)}
+        \PYG{n}{the\PYGZus{}probs} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{repeat}\PYG{p}{(}\PYG{n}{the\PYGZus{}probs}\PYG{p}{,} \PYG{n}{upper\PYGZus{}bound} \PYG{o}{\PYGZhy{}} \PYG{n}{lower\PYGZus{}bound}\PYG{p}{,} \PYG{n}{axis}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{)}
+
+        \PYG{k}{if} \PYG{n}{the\PYGZus{}y\PYGZus{}probs} \PYG{o+ow}{is} \PYG{n+nb+bp}{None}\PYG{p}{:}
+            \PYG{n}{the\PYGZus{}y\PYGZus{}probs} \PYG{o}{=} \PYG{n}{the\PYGZus{}probs}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{n}{the\PYGZus{}y\PYGZus{}probs} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{n}{the\PYGZus{}y\PYGZus{}probs}\PYG{p}{,} \PYG{n}{the\PYGZus{}probs}\PYG{p}{,} \PYG{n}{axis}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{)}
+
+    \PYG{k}{return} \PYG{n}{the\PYGZus{}y\PYGZus{}probs}
+
+
+\PYG{n}{batch\PYGZus{}size} \PYG{o}{=} \PYG{l+m+mi}{10}
+\PYG{n}{num\PYGZus{}classes} \PYG{o}{=} \PYG{l+m+mi}{10}
+\PYG{n}{epochs} \PYG{o}{=} \PYG{l+m+mi}{12}
+
+\PYG{c+c1}{\PYGZsh{} input image dimensions}
+\PYG{n}{img\PYGZus{}rows}\PYG{p}{,} \PYG{n}{img\PYGZus{}cols} \PYG{o}{=} \PYG{l+m+mi}{28}\PYG{p}{,} \PYG{l+m+mi}{28}
+
+\PYG{c+c1}{\PYGZsh{} the data, shuffled and split between train and test sets}
+\PYG{p}{(}\PYG{n}{x\PYGZus{}train}\PYG{p}{,} \PYG{n}{y\PYGZus{}train}\PYG{p}{),} \PYG{p}{(}\PYG{n}{x\PYGZus{}test}\PYG{p}{,} \PYG{n}{y\PYGZus{}test}\PYG{p}{)} \PYG{o}{=} \PYG{n}{mnist}\PYG{o}{.}\PYG{n}{load\PYGZus{}data}\PYG{p}{()}
+
+\PYG{k}{if} \PYG{n}{K}\PYG{o}{.}\PYG{n}{image\PYGZus{}data\PYGZus{}format}\PYG{p}{()} \PYG{o}{==} \PYG{l+s+s1}{\PYGZsq{}channels\PYGZus{}first\PYGZsq{}}\PYG{p}{:}
+    \PYG{n}{x\PYGZus{}train} \PYG{o}{=} \PYG{n}{x\PYGZus{}train}\PYG{o}{.}\PYG{n}{reshape}\PYG{p}{(}\PYG{n}{x\PYGZus{}train}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{img\PYGZus{}rows}\PYG{p}{,} \PYG{n}{img\PYGZus{}cols}\PYG{p}{)}
+    \PYG{n}{x\PYGZus{}test} \PYG{o}{=} \PYG{n}{x\PYGZus{}test}\PYG{o}{.}\PYG{n}{reshape}\PYG{p}{(}\PYG{n}{x\PYGZus{}test}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{img\PYGZus{}rows}\PYG{p}{,} \PYG{n}{img\PYGZus{}cols}\PYG{p}{)}
+    \PYG{n}{input\PYGZus{}shape} \PYG{o}{=} \PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{img\PYGZus{}rows}\PYG{p}{,} \PYG{n}{img\PYGZus{}cols}\PYG{p}{)}
+\PYG{k}{else}\PYG{p}{:}
+    \PYG{n}{x\PYGZus{}train} \PYG{o}{=} \PYG{n}{x\PYGZus{}train}\PYG{o}{.}\PYG{n}{reshape}\PYG{p}{(}\PYG{n}{x\PYGZus{}train}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],} \PYG{n}{img\PYGZus{}rows}\PYG{p}{,} \PYG{n}{img\PYGZus{}cols}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{)}
+    \PYG{n}{x\PYGZus{}test} \PYG{o}{=} \PYG{n}{x\PYGZus{}test}\PYG{o}{.}\PYG{n}{reshape}\PYG{p}{(}\PYG{n}{x\PYGZus{}test}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],} \PYG{n}{img\PYGZus{}rows}\PYG{p}{,} \PYG{n}{img\PYGZus{}cols}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{)}
+    \PYG{n}{input\PYGZus{}shape} \PYG{o}{=} \PYG{p}{(}\PYG{n}{img\PYGZus{}rows}\PYG{p}{,} \PYG{n}{img\PYGZus{}cols}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{)}
+
+
+\PYG{n}{x\PYGZus{}train} \PYG{o}{=} \PYG{n}{x\PYGZus{}train}\PYG{o}{.}\PYG{n}{astype}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}float32\PYGZsq{}}\PYG{p}{)}
+\PYG{n}{x\PYGZus{}test} \PYG{o}{=} \PYG{n}{x\PYGZus{}test}\PYG{o}{.}\PYG{n}{astype}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}float32\PYGZsq{}}\PYG{p}{)}
+\PYG{n}{x\PYGZus{}train} \PYG{o}{/=} \PYG{l+m+mi}{255}
+\PYG{n}{x\PYGZus{}test} \PYG{o}{/=} \PYG{l+m+mi}{255}
+\PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}x\PYGZus{}train shape:\PYGZsq{}}\PYG{p}{,} \PYG{n}{x\PYGZus{}train}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{)}
+\PYG{k}{print}\PYG{p}{(}\PYG{n}{x\PYGZus{}train}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],} \PYG{l+s+s1}{\PYGZsq{}train samples\PYGZsq{}}\PYG{p}{)}
+\PYG{k}{print}\PYG{p}{(}\PYG{n}{x\PYGZus{}test}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],} \PYG{l+s+s1}{\PYGZsq{}test samples\PYGZsq{}}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} convert class vectors to binary class matrices}
+\PYG{n}{y\PYGZus{}train} \PYG{o}{=} \PYG{n}{keras}\PYG{o}{.}\PYG{n}{utils}\PYG{o}{.}\PYG{n}{to\PYGZus{}categorical}\PYG{p}{(}\PYG{n}{y\PYGZus{}train}\PYG{p}{,} \PYG{n}{num\PYGZus{}classes}\PYG{p}{)}
+\PYG{n}{y\PYGZus{}test} \PYG{o}{=} \PYG{n}{keras}\PYG{o}{.}\PYG{n}{utils}\PYG{o}{.}\PYG{n}{to\PYGZus{}categorical}\PYG{p}{(}\PYG{n}{y\PYGZus{}test}\PYG{p}{,} \PYG{n}{num\PYGZus{}classes}\PYG{p}{)}
+
+\PYG{n}{y\PYGZus{}train} \PYG{o}{=} \PYG{n}{create\PYGZus{}bags}\PYG{p}{(}\PYG{n}{x\PYGZus{}train}\PYG{p}{,} \PYG{n}{y\PYGZus{}train}\PYG{p}{,} \PYG{n}{batch\PYGZus{}size}\PYG{p}{)}
+\PYG{c+c1}{\PYGZsh{} y\PYGZus{}test = create\PYGZus{}bags(x\PYGZus{}test, y\PYGZus{}test, batch\PYGZus{}size)}
+
+\PYG{n}{model} \PYG{o}{=} \PYG{n}{Sequential}\PYG{p}{()}
+\PYG{n}{model}\PYG{o}{.}\PYG{n}{add}\PYG{p}{(}\PYG{n}{Conv2D}\PYG{p}{(}\PYG{l+m+mi}{32}\PYG{p}{,} \PYG{n}{kernel\PYGZus{}size}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{3}\PYG{p}{,} \PYG{l+m+mi}{3}\PYG{p}{),}
+                 \PYG{n}{activation}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}relu\PYGZsq{}}\PYG{p}{,}
+                 \PYG{n}{input\PYGZus{}shape}\PYG{o}{=}\PYG{n}{input\PYGZus{}shape}\PYG{p}{))}
+\PYG{n}{model}\PYG{o}{.}\PYG{n}{add}\PYG{p}{(}\PYG{n}{Conv2D}\PYG{p}{(}\PYG{l+m+mi}{64}\PYG{p}{,} \PYG{p}{(}\PYG{l+m+mi}{3}\PYG{p}{,} \PYG{l+m+mi}{3}\PYG{p}{),} \PYG{n}{activation}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}relu\PYGZsq{}}\PYG{p}{))}
+\PYG{n}{model}\PYG{o}{.}\PYG{n}{add}\PYG{p}{(}\PYG{n}{MaxPooling2D}\PYG{p}{(}\PYG{n}{pool\PYGZus{}size}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{2}\PYG{p}{,} \PYG{l+m+mi}{2}\PYG{p}{)))}
+\PYG{n}{model}\PYG{o}{.}\PYG{n}{add}\PYG{p}{(}\PYG{n}{Dropout}\PYG{p}{(}\PYG{l+m+mf}{0.25}\PYG{p}{))}
+\PYG{n}{model}\PYG{o}{.}\PYG{n}{add}\PYG{p}{(}\PYG{n}{Flatten}\PYG{p}{())}
+\PYG{n}{model}\PYG{o}{.}\PYG{n}{add}\PYG{p}{(}\PYG{n}{Dense}\PYG{p}{(}\PYG{l+m+mi}{128}\PYG{p}{,} \PYG{n}{activation}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}relu\PYGZsq{}}\PYG{p}{))}
+\PYG{n}{model}\PYG{o}{.}\PYG{n}{add}\PYG{p}{(}\PYG{n}{Dropout}\PYG{p}{(}\PYG{l+m+mf}{0.5}\PYG{p}{))}
+\PYG{n}{model}\PYG{o}{.}\PYG{n}{add}\PYG{p}{(}\PYG{n}{Dense}\PYG{p}{(}\PYG{n}{num\PYGZus{}classes}\PYG{p}{,} \PYG{n}{activation}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}softmax\PYGZsq{}}\PYG{p}{))}
+\PYG{c+c1}{\PYGZsh{} model.add(BatchNormalization()) \PYGZsh{} not so good for this dataset; drops accuracy from 0.98 to 0.92}
+
+\PYG{n}{model}\PYG{o}{.}\PYG{n}{compile}\PYG{p}{(}\PYG{n}{loss}\PYG{o}{=}\PYG{n}{keras}\PYG{o}{.}\PYG{n}{losses}\PYG{o}{.}\PYG{n}{kullback\PYGZus{}leibler\PYGZus{}divergence}\PYG{p}{,} \PYG{c+c1}{\PYGZsh{} using KL\PYGZhy{}divergence}
+              \PYG{n}{optimizer}\PYG{o}{=}\PYG{n}{keras}\PYG{o}{.}\PYG{n}{optimizers}\PYG{o}{.}\PYG{n}{Adadelta}\PYG{p}{(),}
+              \PYG{n}{metrics}\PYG{o}{=}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}accuracy\PYGZsq{}}\PYG{p}{])}
+
+\PYG{n}{model}\PYG{o}{.}\PYG{n}{fit}\PYG{p}{(}\PYG{n}{x\PYGZus{}train}\PYG{p}{,} \PYG{n}{y\PYGZus{}train}\PYG{p}{,}
+          \PYG{n}{batch\PYGZus{}size}\PYG{o}{=}\PYG{n}{batch\PYGZus{}size}\PYG{p}{,}
+          \PYG{n}{epochs}\PYG{o}{=}\PYG{n}{epochs}\PYG{p}{,}
+          \PYG{n}{verbose}\PYG{o}{=}\PYG{l+m+mi}{1}\PYG{p}{,}
+          \PYG{n}{validation\PYGZus{}data}\PYG{o}{=}\PYG{p}{(}\PYG{n}{x\PYGZus{}test}\PYG{p}{,} \PYG{n}{y\PYGZus{}test}\PYG{p}{))}
+
+\PYG{c+c1}{\PYGZsh{} for epoch in epochs:}
+
+
+
+\PYG{n}{score} \PYG{o}{=} \PYG{n}{model}\PYG{o}{.}\PYG{n}{evaluate}\PYG{p}{(}\PYG{n}{x\PYGZus{}test}\PYG{p}{,} \PYG{n}{y\PYGZus{}test}\PYG{p}{,} \PYG{n}{verbose}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{)}
+\PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Test loss:\PYGZsq{}}\PYG{p}{,} \PYG{n}{score}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{])}
+\PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Test accuracy:\PYGZsq{}}\PYG{p}{,} \PYG{n}{score}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{])}
+\end{Verbatim}

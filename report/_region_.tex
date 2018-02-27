@@ -1,0 +1,72 @@
+\message{ !name(report.tex)}\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX} % To support LaTeX quoting style
+\setromanfont{Times New Roman}
+
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+
+\usepackage{longtable}
+\usepackage[table,dvipsnames]{xcolor}
+
+\usepackage{minted}
+% \RequirePackage[outputdir=.,cache=true]{minted}
+
+% \setmonofont{Monaco}
+
+% \usepackage{listings}
+% \usepackage{color}
+% \usepackage{courier}
+
+
+\usepackage{hyperref}
+
+\usepackage{layout}
+\usepackage{geometry}
+\usepackage{float}
+
+\usepackage[fleqn]{amsmath}
+
+\parindent=0pt
+\oddsidemargin=0pt
+\hoffset=0pt
+\textwidth=6.6in
+\textheight=9in
+\footskip=50pt
+
+\setmonofont{Monaco}
+
+
+\newcommand{\tripleunderscore}{\textunderscore\textunderscore\textunderscore}
+\newcommand{\twelveuderscore}{\tripleunderscore \tripleunderscore
+  \tripleunderscore \tripleunderscore}
+
+\newcommand*\rfrac[2]{{}^{#1}\!/_{#2}}
+
+\definecolor{graybg}{rgb}{0.95,0.95,0.95}
+
+\newminted[texterror]{text}{frame=leftline,rulecolor=\color{red},framerule=1pt}
+\newminted[textsuccess]{text}{frame=leftline,rulecolor=\color{ForestGreen},framerule=1pt}
+\newminted[textout]{text}{frame=leftline,rulecolor=\color{gray!80},framerule=1pt,bgcolor=graybg}
+\newminted[rframe]{r}{fontsize=\scriptsize,frame=single,rulecolor=\color{Gray},framerule=1pt}
+\newminted[codeframe]{text}{fontsize=\scriptsize,frame=single,rulecolor=\color{Gray},framerule=1pt}
+
+\begin{document}
+
+\message{ !name(report.tex) !offset(70) }
+\textbf{Обучения
+  на основании пропорциональных маркировок}, который является
+гибридным алгоритмом обучения за счёт того, что известна только
+вероянтость нахождения определённого класса среди группы объектов.
+
+
+\message{ !name(report.tex) !offset(74) }
+
+\end{document}

@@ -1,0 +1,5 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{model}\PYG{o}{.}\PYG{n}{compile}\PYG{p}{(}\PYG{n}{loss}\PYG{o}{=}\PYG{n}{keras}\PYG{o}{.}\PYG{n}{losses}\PYG{o}{.}\PYG{n}{kullback\PYGZus{}leibler\PYGZus{}divergence}\PYG{p}{,} \PYG{c+c1}{\PYGZsh{} using KL\PYGZhy{}divergence}
+              \PYG{n}{optimizer}\PYG{o}{=}\PYG{n}{keras}\PYG{o}{.}\PYG{n}{optimizers}\PYG{o}{.}\PYG{n}{Adadelta}\PYG{p}{(),}
+              \PYG{n}{metrics}\PYG{o}{=}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}accuracy\PYGZsq{}}\PYG{p}{])}
+\end{Verbatim}

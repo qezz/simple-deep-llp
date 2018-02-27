@@ -1,0 +1,32 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{def} \PYG{n+nf}{create\PYGZus{}bags}\PYG{p}{(}\PYG{n}{input\PYGZus{}data}\PYG{p}{,} \PYG{n}{labels}\PYG{p}{,} \PYG{n}{max\PYGZus{}batch\PYGZus{}size}\PYG{p}{):}
+
+    \PYG{c+c1}{\PYGZsh{} output probabilities}
+    \PYG{n}{the\PYGZus{}y\PYGZus{}probs} \PYG{o}{=} \PYG{n+nb+bp}{None}
+
+    \PYG{c+c1}{\PYGZsh{} get next `max\PYGZus{}batch\PYGZus{}size\PYGZsq{} pieces of the `input\PYGZus{}data\PYGZsq{}}
+    \PYG{n}{input\PYGZus{}data\PYGZus{}length} \PYG{o}{=} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{input\PYGZus{}data}\PYG{p}{)}
+    \PYG{k}{for} \PYG{n}{lower\PYGZus{}bound} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{input\PYGZus{}data\PYGZus{}length}\PYG{p}{,} \PYG{n}{max\PYGZus{}batch\PYGZus{}size}\PYG{p}{):}
+
+        \PYG{c+c1}{\PYGZsh{} Check the top limit}
+        \PYG{k}{if} \PYG{n}{lower\PYGZus{}bound} \PYG{o}{+} \PYG{n}{max\PYGZus{}batch\PYGZus{}size} \PYG{o}{\PYGZgt{}=} \PYG{n}{input\PYGZus{}data\PYGZus{}length}\PYG{p}{:}
+            \PYG{n}{upper\PYGZus{}bound} \PYG{o}{=} \PYG{n}{input\PYGZus{}data\PYGZus{}length}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{n}{upper\PYGZus{}bound} \PYG{o}{=} \PYG{n}{lower\PYGZus{}bound} \PYG{o}{+} \PYG{n}{max\PYGZus{}batch\PYGZus{}size}
+
+        \PYG{n}{the\PYGZus{}batch} \PYG{o}{=} \PYG{n}{input\PYGZus{}data}\PYG{p}{[}\PYG{n}{lower\PYGZus{}bound} \PYG{p}{:} \PYG{n}{upper\PYGZus{}bound}\PYG{p}{]}
+
+        \PYG{c+c1}{\PYGZsh{} Find the probability of each class}
+        \PYG{n}{the\PYGZus{}labels} \PYG{o}{=} \PYG{n}{labels}\PYG{p}{[}\PYG{n}{lower\PYGZus{}bound} \PYG{p}{:} \PYG{n}{upper\PYGZus{}bound}\PYG{p}{]}
+
+        \PYG{n}{the\PYGZus{}probs} \PYG{o}{=} \PYG{n+nb}{sum}\PYG{p}{(}\PYG{n}{the\PYGZus{}labels}\PYG{p}{)} \PYG{o}{/} \PYG{n}{max\PYGZus{}batch\PYGZus{}size} \PYG{c+c1}{\PYGZsh{} an array [y0, y1, ...]}
+        \PYG{n}{the\PYGZus{}probs} \PYG{o}{=} \PYG{n}{the\PYGZus{}probs}\PYG{o}{.}\PYG{n}{reshape}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{)}
+        \PYG{n}{the\PYGZus{}probs} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{repeat}\PYG{p}{(}\PYG{n}{the\PYGZus{}probs}\PYG{p}{,} \PYG{n}{upper\PYGZus{}bound} \PYG{o}{\PYGZhy{}} \PYG{n}{lower\PYGZus{}bound}\PYG{p}{,} \PYG{n}{axis}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{)}
+
+        \PYG{k}{if} \PYG{n}{the\PYGZus{}y\PYGZus{}probs} \PYG{o+ow}{is} \PYG{n+nb+bp}{None}\PYG{p}{:}
+            \PYG{n}{the\PYGZus{}y\PYGZus{}probs} \PYG{o}{=} \PYG{n}{the\PYGZus{}probs}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{n}{the\PYGZus{}y\PYGZus{}probs} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{n}{the\PYGZus{}y\PYGZus{}probs}\PYG{p}{,} \PYG{n}{the\PYGZus{}probs}\PYG{p}{,} \PYG{n}{axis}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{)}
+
+    \PYG{k}{return} \PYG{n}{the\PYGZus{}y\PYGZus{}probs}
+\end{Verbatim}
